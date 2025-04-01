@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Performance Report: Waikoloa vs. Hilo - March 2025</title>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts (Optional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Color Palette */
+            --primary-color: #2A62BF; /* Deeper Blue */
+            --secondary-color: #6AA6F7; /* Lighter Blue */
+            --accent-color: #FFB94E; /* Orange/Yellow Accent */
+            --background-light: #f8f9fa; /* Very Light Grey */
+            --card-background: #ffffff;
+            --text-primary: #212529; /* Dark Grey */
+            --text-secondary: #495057; /* Medium Grey */
+            --border-color: #dee2e6;
+            --waikoloa-color: #36A2EB; /* Chart Blue */
+            --hilo-color: #FF6384; /* Chart Pink/Red */
+            --shadow-color: rgba(0, 0, 0, 0.08);
+
+            /* Typography */
+            --font-family: 'Inter', sans-serif;
+
+            /* Spacing */
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); line-height: 1.6; background-color: var(--background-light); color: var(--text-primary); padding: var(--spacing-md); }
+        .container { max-width: 1200px; margin: var(--spacing-md) auto; background-color: var(--card-background); padding: var(--spacing-lg) var(--spacing-xl); border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); }
+        h1, h2, h3 { color: var(--primary-color); margin-bottom: var(--spacing-md); font-weight: 700; letter-spacing: -0.5px; }
+        h1 { text-align: center; font-size: 2.2em; margin-bottom: var(--spacing-sm); }
+        .report-subtitle { text-align: center; font-size: 1.1em; color: var(--text-secondary); margin-bottom: var(--spacing-xl); font-weight: 400; }
+        h2 { font-size: 1.6em; margin-top: var(--spacing-xl); border-bottom: 2px solid var(--primary-color); padding-bottom: var(--spacing-sm); display: inline-block; }
+        h3.chart-title { text-align: center; margin-top: 0; margin-bottom: var(--spacing-md); font-size: 1.2em; color: var(--text-primary); font-weight: 600; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+        .summary-card { background-color: var(--card-background); padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px var(--shadow-color); text-align: center; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .summary-card:hover { transform: translateY(-3px); box-shadow: 0 5px 10px var(--shadow-color); }
+        .summary-card h3 { margin-top: 0; margin-bottom: var(--spacing-md); font-size: 1.15em; color: var(--primary-color); }
+        .summary-card p { margin-bottom: var(--spacing-sm); color: var(--text-secondary); font-size: 0.95em; }
+        .summary-card .value { font-weight: 700; color: var(--text-primary); font-size: 1.4em; display: block; }
+        .summary-card canvas { margin-top: var(--spacing-md); }
+
+        .chart-container {
+            margin-top: var(--spacing-lg); padding: var(--spacing-lg); background-color: var(--card-background);
+            border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px var(--shadow-color);
+            position: relative; min-height: 380px; height: 400px;
+        }
+        .total-sales-chart-container { min-height: 180px; height: 180px; padding: 5px; border: none; box-shadow: none; margin-top: 0; }
+        .chart-grid-two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-lg); margin-top: 0; }
+        canvas { max-width: 100%; display: block; }
+        .chart-placeholder { color: var(--text-secondary); font-style: italic; text-align: center; padding: var(--spacing-xl); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; } h2 { font-size: 1.4em; }
+            .container { padding: var(--spacing-md) var(--spacing-lg); }
+            .summary-grid { grid-template-columns: 1fr; }
+            .chart-grid-two-col { grid-template-columns: 1fr; }
+            .chart-container { height: 350px; min-height: 300px; }
+            .total-sales-chart-container { height: 150px; min-height: 150px; }
+        }
+        @media (max-width: 480px) {
+            body { padding: var(--spacing-sm); }
+            .container { padding: var(--spacing-md); }
+            h1 { font-size: 1.5em; } h2 { font-size: 1.2em; }
+            .summary-card .value { font-size: 1.2em; }
+             .chart-container { height: 300px; min-height: 280px; }
+             .total-sales-chart-container { height: 140px; min-height: 140px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sales Performance Report</h1>
+        <p class="report-subtitle">Waikoloa vs. Hilo - March 2025</p>
+
+        <!-- Summary Section -->
+        <section class="summary-section">
+            <h2>Executive Summary</h2>
+            <div class="summary-grid">
+                 <div class="summary-card">
+                    <h3>Waikoloa Performance</h3>
+                    <p>Total Sales:</p><p><span class="value" id="wk-total-sales">Loading...</span></p>
+                    <p>Avg Daily Sales:</p><p><span class="value" id="wk-avg-sales">Loading...</span></p>
+                </div>
+                <div class="summary-card">
+                    <h3>Hilo Performance</h3>
+                    <p>Total Sales:</p><p><span class="value" id="hilo-total-sales">Loading...</span></p>
+                    <p>Avg Daily Sales:</p><p><span class="value" id="hilo-avg-sales">Loading...</span></p>
+                </div>
+                <div class="summary-card">
+                     <h3>Total Sales Comparison</h3>
+                     <div class="chart-container total-sales-chart-container">
+                        <canvas id="totalSalesComparisonBarChart"><p class="chart-placeholder">Chart loading...</p></canvas>
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Daily Trend Section -->
+        <section class="chart-section">
+            <h2>Daily Sales Trend ($)</h2>
+            <div class="chart-container">
+                <canvas id="dailySalesChart"><p class="chart-placeholder">Chart loading...</p></canvas>
+            </div>
+        </section>
+
+        <!-- Day of Week Analysis Section -->
+        <section class="chart-section">
+            <h2>Sales Analysis by Day of Week</h2>
+            <div class="chart-grid-two-col">
+                <div class="chart-container">
+                     <h3 class="chart-title">Waikoloa: Sales Share by Day</h3>
+                    <canvas id="waikoloaDayOfWeekDonutChart"><p class="chart-placeholder">Chart loading...</p></canvas>
+                </div>
+                <div class="chart-container">
+                     <h3 class="chart-title">Hilo: Sales Share by Day</h3>
+                    <canvas id="hiloDayOfWeekDonutChart"><p class="chart-placeholder">Chart loading...</p></canvas>
+                </div>
+            </div>
+            <div class="chart-container" style="margin-top: var(--spacing-lg);">
+                 <h3 class="chart-title">Sales Volume by Day of Week ($)</h3>
+                <canvas id="dayOfWeekComparisonBarChart"><p class="chart-placeholder">Chart loading...</p></canvas>
+            </div>
+        </section>
+
+    </div> <!-- End of container div -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded. Initializing report...");
+
+            // --- Color & Style Variables ---
+            const wkColor = getComputedStyle(document.documentElement).getPropertyValue('--waikoloa-color').trim();
+            const hiloColor = getComputedStyle(document.documentElement).getPropertyValue('--hilo-color').trim();
+            const textColorPrimary = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+            const textColorSecondary = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
+            const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim();
+
+            // --- Define Consistent Color Palette for Days of Week ---
+            const dayOfWeekColors = [
+                '#FF6384', // Sun - Pink/Red
+                '#4BC0C0', // Mon - Teal
+                '#FFCE56', // Tue - Yellow
+                '#9966FF', // Wed - Purple
+                '#FF9F40', // Thu - Orange
+                '#36A2EB', // Fri - Blue
+                '#C9CBCF'  // Sat - Grey
+            ];
+            // Ensure labels match this order
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+
+            // --- Data ---
+            const dates = [ "01 Mar", "02 Mar", "03 Mar", "04 Mar", "05 Mar", "06 Mar", "07 Mar", "08 Mar", "09 Mar", "10 Mar", "11 Mar", "12 Mar", "13 Mar", "14 Mar", "15 Mar", "16 Mar", "17 Mar", "18 Mar", "19 Mar", "20 Mar", "21 Mar", "22 Mar", "23 Mar", "24 Mar", "25 Mar", "26 Mar", "27 Mar", "28 Mar", "29 Mar", "30 Mar", "31 Mar" ];
+            const waikoloaSales = [ 1168.30, 907.24, 616.25, 805.57, 875.43, 803.36, 1047.59, 944.91, 1500.51, 1102.87, 780.75, 539.69, 863.23, 1099.74, 1431.91, 957.88, 1258.78, 1228.36, 1289.76, 1063.83, 1068.64, 1236.05, 875.20, 719.14, 739.06, 838.77, 872.00, 493.96, 1020.34, 871.00, 950.19 ];
+            const hiloSales = [ 1741.53, 909.20, 1497.17, 1068.84, 877.80, 592.97, 929.37, 1493.55, 947.70, 1012.96, 1210.83, 1171.18, 1265.98, 1753.54, 2148.32, 1490.50, 2109.20, 2102.46, 2399.56, 2155.39, 2256.91, 2769.87, 1374.63, 982.88, 1482.44, 970.63, 1008.63, 1005.50, 2421.75, 1888.75, 1246.23 ];
+
+            // --- Helper Functions ---
+            const sum = (arr) => arr.reduce((acc, val) => acc + (val || 0), 0);
+            const avg = (arr) => { const v = arr.filter(n => typeof n === 'number'); return v.length > 0 ? sum(v) / v.length : 0; };
+            const formatCurrency = (value) => `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+            const safeSetText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; else console.warn(`Element ${id} not found.`); };
+            const getChartContext = (canvasId) => { const c = document.getElementById(canvasId); if (!c) { console.error(`Canvas ${canvasId} not found.`); return null; } return c.getContext('2d'); };
+
+            // --- Calculations ---
+            const wkTotalSales = sum(waikoloaSales); const wkAvgSales = avg(waikoloaSales);
+            const hiloTotalSales = sum(hiloSales); const hiloAvgSales = avg(hiloSales);
+            safeSetText('wk-total-sales', formatCurrency(wkTotalSales)); safeSetText('wk-avg-sales', formatCurrency(wkAvgSales));
+            safeSetText('hilo-total-sales', formatCurrency(hiloTotalSales)); safeSetText('hilo-avg-sales', formatCurrency(hiloAvgSales));
+
+            const dayStartIndex = 6; // Sat
+            const waikoloaSalesByDay = Array(7).fill(0); const hiloSalesByDay = Array(7).fill(0);
+            waikoloaSales.forEach((s, i) => { if(typeof s ==='number') waikoloaSalesByDay[(dayStartIndex + i) % 7] += s; });
+            hiloSales.forEach((s, i) => { if(typeof s ==='number') hiloSalesByDay[(dayStartIndex + i) % 7] += s; });
+
+            // --- Global Chart Defaults ---
+            Chart.defaults.font.family = fontFamily;
+            Chart.defaults.color = textColorSecondary;
+
+            // --- Default Plugin Configurations ---
+            const chartTooltipDefaults = {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)', titleFont: { weight: 'bold' }, bodySpacing: 4, padding: 10,
+                callbacks: { label: ctx => `${ctx.dataset.label || ''}: ${formatCurrency(ctx.parsed.y ?? ctx.parsed)}` }
+            };
+            const chartLegendDefaults = { position: 'bottom', labels: { boxWidth: 12, padding: 15, color: textColorPrimary } };
+
+             // --- Chart Creation Function (with stability fixes) ---
+             function createChart(id, config) {
+                 const ctx = getChartContext(id);
+                 if (ctx) {
+                     try {
+                         const finalConfig = {
+                             ...config,
+                             options: {
+                                 responsive: true,
+                                 maintainAspectRatio: false, // ** Explicitly false **
+                                 ...config.options,
+                                 plugins: {
+                                     legend: { ...chartLegendDefaults, ...config.options?.plugins?.legend },
+                                     tooltip: { ...chartTooltipDefaults, ...config.options?.plugins?.tooltip },
+                                     ...config.options?.plugins
+                                 },
+                                 animation: { duration: 600, easing: 'easeOutCubic' },
+                                 interaction: { mode: 'index', intersect: false },
+                             }
+                         };
+                         new Chart(ctx, finalConfig);
+                         console.log(`Chart '${id}' created successfully.`);
+                     } catch (error) { console.error(`Error creating chart '${id}':`, error); }
+                 }
+             }
+
+            // --- Instantiating Charts ---
+
+            // Total Sales Comparison Bar Chart
+            createChart('totalSalesComparisonBarChart', {
+                type: 'bar',
+                data: { labels: ['Waikoloa', 'Hilo'], datasets: [{ label: 'Total Sales ($)', data: [wkTotalSales, hiloTotalSales], backgroundColor: [ wkColor+'E6', hiloColor+'E6' ], borderColor: [ wkColor, hiloColor ], borderWidth: 1 }] },
+                options: { indexAxis: 'y', scales: { x: { beginAtZero: true, title: { display: false }, ticks: { callback: (v) => '$' + (v/1000).toLocaleString()+'k', font: { size: 10 }, color: textColorSecondary } }, y: { grid: { display: false }, ticks: { font: { size: 11 }, color: textColorPrimary } } }, plugins: { legend: { display: false } } }
+            });
+
+            // Daily Sales Line Chart
+            createChart('dailySalesChart', {
+                type: 'line',
+                data: { labels: dates, datasets: [ { label: 'Waikoloa', data: waikoloaSales, borderColor: wkColor, backgroundColor: wkColor + '33', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 1, pointHoverRadius: 6, pointBackgroundColor: wkColor, yAxisID: 'ySales' }, { label: 'Hilo', data: hiloSales, borderColor: hiloColor, backgroundColor: hiloColor + '33', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 1, pointHoverRadius: 6, pointBackgroundColor: hiloColor, yAxisID: 'ySales' } ] },
+                options: { scales: { x: { title: { display: false }, grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 12, font: { size: 10 } } }, ySales: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Sales Amount ($)', color: textColorPrimary, font: { weight: '600' } }, beginAtZero: false, grid: { color: '#e9ecef' }, ticks: { callback: (v) => '$' + v.toLocaleString() } } }, plugins: { legend: { position: 'top' } } }
+            });
+
+            // Waikoloa Day of Week Donut Chart
+            createChart('waikoloaDayOfWeekDonutChart', {
+                type: 'doughnut',
+                data: {
+                    labels: dayNames, // Sun, Mon, Tue...
+                    datasets: [{
+                        label: 'Waikoloa Sales',
+                        data: waikoloaSalesByDay,
+                        backgroundColor: dayOfWeekColors, // ** Apply defined colors **
+                        hoverOffset: 8 // Make slice pop out on hover
+                    }]
+                },
+                options: {
+                    cutout: '60%',
+                    plugins: {
+                        tooltip: { // Custom tooltip for percentage
+                            callbacks: {
+                                label: ctx => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const perc = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${ctx.label}: ${formatCurrency(ctx.parsed)} (${perc}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Hilo Day of Week Donut Chart
+            createChart('hiloDayOfWeekDonutChart', {
+                type: 'doughnut',
+                data: {
+                    labels: dayNames, // Sun, Mon, Tue...
+                    datasets: [{
+                        label: 'Hilo Sales',
+                        data: hiloSalesByDay,
+                        backgroundColor: dayOfWeekColors, // ** Apply SAME defined colors **
+                        hoverOffset: 8
+                    }]
+                 },
+                 options: {
+                     cutout: '60%',
+                     plugins: {
+                         tooltip: { // Custom tooltip for percentage
+                             callbacks: {
+                                 label: ctx => {
+                                     const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                     const perc = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                     return `${ctx.label}: ${formatCurrency(ctx.parsed)} (${perc}%)`;
+                                 }
+                             }
+                         }
+                     }
+                 }
+            });
+
+            // Day of Week Comparison Bar Chart
+            createChart('dayOfWeekComparisonBarChart', {
+                type: 'bar',
+                data: { labels: dayNames, datasets: [ { label: 'Waikoloa', data: waikoloaSalesByDay, backgroundColor: wkColor + 'E6', borderColor: wkColor, borderWidth: 1 }, { label: 'Hilo', data: hiloSalesByDay, backgroundColor: hiloColor + 'E6', borderColor: hiloColor, borderWidth: 1 } ] },
+                options: { scales: { x: { title: { display: false }, grid: { display: false } }, y: { title: { display: true, text: 'Total Sales ($)', color: textColorPrimary, font: { weight: '600' } }, beginAtZero: true, grid: { color: '#e9ecef' }, ticks: { callback: (v) => '$' + v.toLocaleString() } } }, plugins: { legend: { position: 'top' } } }
+            });
+
+            console.log("Report initialization finished.");
+        });
+    </script>
+
+</body>
+</html>
